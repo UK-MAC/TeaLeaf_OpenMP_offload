@@ -67,10 +67,6 @@ CONTAINS
                                                                u_right,sd_right,p_right,r_right,z_right, &
                                                                kx_right,ky_right,di_right
 
-!$ACC DATA          &
-!$ACC PRESENT(density,energy0,energy1, u, sd, p, r, z, kx, ky, di)    &
-!$ACC PRESENT(density_right,energy0_right,energy1_right, u_right,sd_right,p_right,r_right,z_right, kx_right,ky_right,di_right)
-
     IF (fields(FIELD_DENSITY).EQ.1) THEN
       CALL update_internal_halo_cell_left_right(x_min, x_max, y_min, y_max, density, &
         x_min_right, x_max_right, y_min_right, y_max_right, density_right, &
@@ -136,7 +132,6 @@ CONTAINS
         x_min_right, x_max_right, y_min_right, y_max_right, di_right, &
         halo_exchange_depth, depth)
     ENDIF
-!$ACC END DATA
 
   END SUBROUTINE
 
@@ -160,22 +155,19 @@ CONTAINS
 
     INTEGER :: j,k
 
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min_left-depth,y_max_left+depth
       DO j=1,depth
         mesh_right(1-j,k)=mesh_left(x_max_left+1-j,k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+
+!$omp target teams distribute parallel do simd collapse(2)    
     DO k=y_min_left-depth,y_max_left+depth
       DO j=1,depth
         mesh_left(x_max_left+j,k)=mesh_right(0+j,k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
 
   END SUBROUTINE update_internal_halo_cell_left_right
 
@@ -220,10 +212,6 @@ CONTAINS
     REAL(KIND=8), DIMENSION(x_min_top-halo_exchange_depth:x_max_top+halo_exchange_depth,y_min_top-halo_exchange_depth:&
                             y_max_top+halo_exchange_depth) :: density_top,energy0_top,energy1_top,&
                                                               u_top, sd_top, p_top, r_top, z_top, kx_top, ky_top, di_top
-
-!$ACC DATA          &
-!$ACC PRESENT( density,energy0,energy1, u, sd, p, r, z, kx, ky, di)    &
-!$ACC PRESENT(density_top,energy0_top,energy1_top,u_top,p_top,sd_top,r_top,z_top,kx_top,ky_top,di_top)
 
     IF (fields(FIELD_DENSITY).EQ.1) THEN
       CALL update_internal_halo_cell_bottom_top(x_min, x_max, y_min, y_max, density, &
@@ -290,7 +278,6 @@ CONTAINS
         x_min_top, x_max_top, y_min_top, y_max_top, di_top, &
         halo_exchange_depth, depth)
     ENDIF
-!$ACC END DATA
 
   END SUBROUTINE update_internal_halo_bottom_top_kernel
 
@@ -312,22 +299,19 @@ CONTAINS
                             y_max_top+halo_exchange_depth) :: mesh_top
     INTEGER :: j,k
 
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target teams distribute parallel do simd collapse(2)
     DO k=1,depth
       DO j=x_min_bottom-depth,x_max_bottom+depth
         mesh_top(j,1-k)=mesh_bottom(j,y_max_bottom+1-k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+
+!$omp target teams distribute parallel do simd collapse(2)
     DO k=1,depth
       DO j=x_min_bottom-depth,x_max_bottom+depth
         mesh_bottom(j,y_max_bottom+k)=mesh_top(j,0+k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
 
   END SUBROUTINE update_internal_halo_cell_bottom_top
 
