@@ -60,12 +60,7 @@ SUBROUTINE tea_leaf_kernel_cheby_init(x_min,  &
 
   INTEGER :: j,k
   REAL(KIND=8) ::  rx, ry, theta
-
-!$ACC DATA &
-!$ACC PRESENT(u, u0, p , w , r, Mi, z , Kx, Ky, Di, cp, bfp)
-
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
         DO j=x_min,x_max
             w(j, k) = Di(j,k)*u(j, k)                             &
@@ -74,7 +69,7 @@ SUBROUTINE tea_leaf_kernel_cheby_init(x_min,  &
             r(j, k) = u0(j, k) - w(j, k)
         ENDDO
     ENDDO
-!$ACC END KERNELS
+    !$omp end target teams distribute parallel do simd
 
   IF (preconditioner_type .NE. TL_PREC_NONE) THEN
 
@@ -85,36 +80,31 @@ SUBROUTINE tea_leaf_kernel_cheby_init(x_min,  &
       CALL tea_diag_solve(x_min, x_max, y_min, y_max, halo_exchange_depth, 0,           &
                              r, z, Mi)
     ENDIF
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
       DO j=x_min,x_max
         p(j, k) = z(j, k)/theta
       ENDDO
     ENDDO
-!$ACC END KERNELS
-
+    !$omp end target teams distribute parallel do simd
   ELSE
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
         DO j=x_min,x_max
             p(j, k) = r(j, k)/theta
         ENDDO
     ENDDO
-!$ACC END KERNELS
+    !$omp end target teams distribute parallel do simd
 
   ENDIF
-!$ACC KERNELS  
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+  !$omp target teams distribute parallel do simd collapse(2)
   DO k=y_min,y_max
       DO j=x_min,x_max
           u(j, k) = u(j, k) + p(j, k)
       ENDDO
   ENDDO
-!$ACC END KERNELS
+  !$omp end target teams distribute parallel do simd
 
-!$ACC END DATA
 
 END SUBROUTINE
 
@@ -158,11 +148,7 @@ SUBROUTINE tea_leaf_kernel_cheby_iterate(x_min, &
     INTEGER :: step, max_cheby_iters
     REAL(KIND=8), DIMENSION(max_cheby_iters) :: ch_alphas, ch_betas
 
-!$ACC DATA &
-!$ACC PRESENT(u, u0, p , w , r, Mi, z , Kx, Ky, Di, cp, bfp)
-
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
         DO j=x_min,x_max
             w(j, k) = (1.0_8                                      &
@@ -173,7 +159,7 @@ SUBROUTINE tea_leaf_kernel_cheby_iterate(x_min, &
             r(j, k) = u0(j, k) - w(j, k)
         ENDDO
     ENDDO
-!$ACC END KERNELS
+    !$omp end target teams distribute parallel do simd
 
   IF (preconditioner_type .NE. TL_PREC_NONE) THEN
 
@@ -184,37 +170,29 @@ SUBROUTINE tea_leaf_kernel_cheby_iterate(x_min, &
       CALL tea_diag_solve(x_min, x_max, y_min, y_max, halo_exchange_depth, 0,           &
                              r, z, Mi)
     ENDIF
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
       DO j=x_min,x_max
         p(j, k) = ch_alphas(step)*p(j, k) + ch_betas(step)*z(j, k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-
+    !$omp end target teams distribute parallel do simd
   ELSE
-!$ACC KERNELS          
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
       DO j=x_min,x_max
         p(j, k) = ch_alphas(step)*p(j, k) + ch_betas(step)*r(j, k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-
+    !$omp end target teams distribute parallel do simd
   ENDIF
-!$ACC KERNELS  
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+  !$omp target teams distribute parallel do simd collapse(2)
   DO k=y_min,y_max
     DO j=x_min,x_max
         u(j, k) = u(j, k) + p(j, k)
     ENDDO
   ENDDO
-!$ACC END KERNELS
-
-!$ACC END DATA
-
+  !$omp end target teams distribute parallel do simd
 END SUBROUTINE tea_leaf_kernel_cheby_iterate
 
 END MODULE
