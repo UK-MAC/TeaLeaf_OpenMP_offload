@@ -17,7 +17,6 @@
 
 !>  @brief Fortran chunk initialisation kernel.
 !>  @author David Beckingsale, Wayne Gaudin
-!>  @author Douglas Shanks (OpenACC)
 !>  @details Calculates mesh geometry for the mesh chunk based on the mesh size.
 
 MODULE initialise_chunk_kernel_module
@@ -56,73 +55,79 @@ SUBROUTINE initialise_chunk_kernel(x_min,x_max,y_min,y_max,       &
 
   INTEGER      :: j,k
 
-!$ACC DATA
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+!$OMP PARALLEL PRIVATE(j)
+!$OMP DO
   DO j=x_min-2,x_max+3
      vertexx(j)=xmin+dx*float(j-x_min)
   ENDDO
-  
-!$ACC LOOP INDEPENDENT
+!$OMP END DO
+
+!$OMP DO
   DO j=x_min-2,x_max+3
     vertexdx(j)=dx
   ENDDO
-  
-!$ACC LOOP INDEPENDENT
+!$OMP END DO
+
+!$OMP DO
   DO k=y_min-2,y_max+3
      vertexy(k)=ymin+dy*float(k-y_min)
   ENDDO
-  
-!$ACC LOOP INDEPENDENT
+!$OMP END DO
+
+!$OMP DO
   DO k=y_min-2,y_max+3
     vertexdy(k)=dy
   ENDDO
-  
-!$ACC LOOP INDEPENDENT
+!$OMP END DO
+
+!$OMP DO
   DO j=x_min-2,x_max+2
      cellx(j)=0.5*(vertexx(j)+vertexx(j+1))
   ENDDO
-  
-!$ACC LOOP INDEPENDENT
+!$OMP END DO
+
+!$OMP DO
   DO j=x_min-2,x_max+2
      celldx(j)=dx
   ENDDO
-  
-!$ACC LOOP INDEPENDENT
+!$OMP END DO
+
+!$OMP DO
   DO k=y_min-2,y_max+2
      celly(k)=0.5*(vertexy(k)+vertexy(k+1))
   ENDDO
-  
-!$ACC LOOP INDEPENDENT
+!$OMP END DO
+
+!$OMP DO
   DO k=y_min-2,y_max+2
      celldy(k)=dy
   ENDDO
-  
-!$ACC LOOP INDEPENDENT PRIVATE(j)
+!$OMP END DO
+
+!$OMP DO
   DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT  
     DO j=x_min-2,x_max+2
         volume(j,k)=dx*dy
      ENDDO
   ENDDO
-  
-!$ACC LOOP INDEPENDENT PRIVATE(j)
+!$OMP END DO
+
+!$OMP DO
   DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT    
     DO j=x_min-2,x_max+2
         xarea(j,k)=celldy(k)
      ENDDO
   ENDDO
-  
-!$ACC LOOP INDEPENDENT PRIVATE(j)
+!$OMP END DO
+
+!$OMP DO
   DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT    
     DO j=x_min-2,x_max+2
         yarea(j,k)=celldx(j)
      ENDDO
   ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
+!$OMP END DO
+!$OMP END PARALLEL
 
 END SUBROUTINE initialise_chunk_kernel
 
