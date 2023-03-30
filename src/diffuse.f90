@@ -41,47 +41,47 @@ SUBROUTINE diffuse
 
   second_step=0.0 ! In order to prevent unused error
 
-! Allocate data ACC
-!$ACC DATA &
-    !$ACC COPYIN(chunk%tiles(1)%field%density)   &
-    !$ACC COPYIN(chunk%tiles(1)%field%energy0)    &
-    !$ACC COPYIN(chunk%tiles(1)%field%energy1)    &
-    !$ACC COPYIN(chunk%tiles(1)%field%u)   &
-    !$ACC COPYIN(chunk%tiles(1)%field%u0) &
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_p)  &
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_r)      &
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_r_store)      &
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_Mi)      &
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_w)      &
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_z) &
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_utemp) &
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_rtemp)&
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_Di)&
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_Kx)&
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_Ky)&
-    !$ACC COPYIN(chunk%tiles(1)%field%vector_sd)&
-    !$ACC COPYIN(chunk%tiles(1)%field%tri_cp)&
-    !$ACC COPYIN(chunk%tiles(1)%field%tri_bfp)&
-    !$ACC COPYIN(chunk%tiles(1)%field%row_sums)&
-    !$ACC COPYIN(chunk%tiles(1)%field%cellx)      &
-    !$ACC COPYIN(chunk%tiles(1)%field%celly)      &
-    !$ACC COPYIN(chunk%tiles(1)%field%celldx)     &
-    !$ACC COPYIN(chunk%tiles(1)%field%celldy)     &
-    !$ACC COPYIN(chunk%tiles(1)%field%vertexx)    &
-    !$ACC COPYIN(chunk%tiles(1)%field%vertexdx)   &
-    !$ACC COPYIN(chunk%tiles(1)%field%vertexy)    &
-    !$ACC COPYIN(chunk%tiles(1)%field%vertexdy)   &
-    !$ACC COPYIN(chunk%tiles(1)%field%volume)     &
-    !$ACC COPYIN(chunk%tiles(1)%field%xarea)      &
-    !$ACC COPYIN(chunk%tiles(1)%field%yarea)      &
-    !$ACC COPY(chunk%left_snd_buffer)    &
-    !$ACC COPY(chunk%left_rcv_buffer)    &
-    !$ACC COPY(chunk%right_snd_buffer)   &
-    !$ACC COPY(chunk%right_rcv_buffer)   &
-    !$ACC COPY(chunk%bottom_snd_buffer)  &
-    !$ACC COPY(chunk%bottom_rcv_buffer)  &
-    !$ACC COPY(chunk%top_snd_buffer)     &
-    !$ACC COPY(chunk%top_rcv_buffer)
+! Allocate target data OMP
+!$omp target target data &
+    !$omp map(to:chunk%tiles(1)%field%density)   &
+    !$omp map(to:chunk%tiles(1)%field%energy0)    &
+    !$omp map(to:chunk%tiles(1)%field%energy1)    &
+    !$omp map(to:chunk%tiles(1)%field%u)   &
+    !$omp map(to:chunk%tiles(1)%field%u0) &
+    !$omp map(to:chunk%tiles(1)%field%vector_p)  &
+    !$omp map(to:chunk%tiles(1)%field%vector_r)      &
+    !$omp map(to:chunk%tiles(1)%field%vector_r_store)      &
+    !$omp map(to:chunk%tiles(1)%field%vector_Mi)      &
+    !$omp map(to:chunk%tiles(1)%field%vector_w)      &
+    !$omp map(to:chunk%tiles(1)%field%vector_z) &
+    !$omp map(to:chunk%tiles(1)%field%vector_utemp) &
+    !$omp map(to:chunk%tiles(1)%field%vector_rtemp)&
+    !$omp map(to:chunk%tiles(1)%field%vector_Di)&
+    !$omp map(to:chunk%tiles(1)%field%vector_Kx)&
+    !$omp map(to:chunk%tiles(1)%field%vector_Ky)&
+    !$omp map(to:chunk%tiles(1)%field%vector_sd)&
+    !$omp map(to:chunk%tiles(1)%field%tri_cp)&
+    !$omp map(to:chunk%tiles(1)%field%tri_bfp)&
+    !$omp map(to:chunk%tiles(1)%field%row_sums)&
+    !$omp map(to:chunk%tiles(1)%field%cellx)      &
+    !$omp map(to:chunk%tiles(1)%field%celly)      &
+    !$omp map(to:chunk%tiles(1)%field%celldx)     &
+    !$omp map(to:chunk%tiles(1)%field%celldy)     &
+    !$omp map(to:chunk%tiles(1)%field%vertexx)    &
+    !$omp map(to:chunk%tiles(1)%field%vertexdx)   &
+    !$omp map(to:chunk%tiles(1)%field%vertexy)    &
+    !$omp map(to:chunk%tiles(1)%field%vertexdy)   &
+    !$omp map(to:chunk%tiles(1)%field%volume)     &
+    !$omp map(to:chunk%tiles(1)%field%xarea)      &
+    !$omp map(to:chunk%tiles(1)%field%yarea)      &
+    !$omp map(tofrom:chunk%left_snd_buffer)    &
+    !$omp map(tofrom:chunk%left_rcv_buffer)    &
+    !$omp map(tofrom:chunk%right_snd_buffer)   &
+    !$omp map(tofrom:chunk%right_rcv_buffer)   &
+    !$omp map(tofrom:chunk%bottom_snd_buffer)  &
+    !$omp map(tofrom:chunk%bottom_rcv_buffer)  &
+    !$omp map(tofrom:chunk%top_snd_buffer)     &
+    !$omp map(tofrom:chunk%top_rcv_buffer)
 
 
   DO
@@ -208,6 +208,6 @@ SUBROUTINE diffuse
 
   CALL tea_finalize
   
-!$ACC END DATA  
+!$omp END target target data  
 
 END SUBROUTINE diffuse
