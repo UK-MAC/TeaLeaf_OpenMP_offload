@@ -37,21 +37,12 @@ SUBROUTINE set_field_kernel(x_min,x_max,y_min,y_max,halo_exchange_depth,    &
 
   INTEGER :: j,k
 
-!$ACC DATA &
-!$ACC PRESENT(energy0,energy1)
-
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
-
+!$omp target teams distribute parallel do simd collapse(2)
   DO k=y_min,y_max
      DO j=x_min,x_max
         energy1(j,k)=energy0(j,k)
      ENDDO
   ENDDO
-
-!$ACC END KERNELS
-
-!$ACC END DATA
 
 END SUBROUTINE set_field_kernel
 

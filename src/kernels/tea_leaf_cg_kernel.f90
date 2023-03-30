@@ -65,19 +65,14 @@ SUBROUTINE tea_leaf_cg_init_kernel(x_min,  &
 
   rro = 0.0_8
 
-!$ACC DATA &
-!$ACC PRESENT(r, Kx, Ky, Di, z, Mi, p, cp, bfp)
-
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT REDUCTION(+:rro)
+  !$omp target teams distribute parallel do simd collapse(2)
   DO k=y_min,y_max
     DO j=x_min,x_max
       p(j, k) = 0.0_8
       z(j, k) = 0.0_8
     ENDDO
   ENDDO
-!$ACC END KERNELS
-
+  !$omp end target teams distribute parallel do simd
   IF (preconditioner_type .NE. TL_PREC_NONE ) THEN
 
     IF (preconditioner_type .EQ. TL_PREC_JAC_BLOCK) THEN
@@ -87,36 +82,31 @@ SUBROUTINE tea_leaf_cg_init_kernel(x_min,  &
       CALL tea_diag_solve(x_min, x_max, y_min, y_max, halo_exchange_depth, 0,           &
                              r, z, Mi)
     ENDIF
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
         DO j=x_min,x_max
             p(j, k) = z(j, k)
         ENDDO
     ENDDO
-!$ACC END KERNELS
-    
+    !$omp end target teams distribute parallel do simd
   ELSE
-!$ACC KERNELS          
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
         DO j=x_min,x_max
             p(j, k) = r(j, k)
         ENDDO
     ENDDO
-!$ACC END KERNELS
+    !$omp end target teams distribute parallel do simd
     
   ENDIF
-!$ACC KERNELS  
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+  !$omp target teams distribute parallel do simd collapse(2) reduction(+:rro)
   DO k=y_min,y_max
     DO j=x_min,x_max
       rro = rro + r(j, k)*p(j, k)
     ENDDO
   ENDDO
-!$ACC END KERNELS
+  !$omp end target teams distribute parallel do simd
 
-!$ACC END DATA
 
 END SUBROUTINE tea_leaf_cg_init_kernel
 
@@ -147,11 +137,7 @@ SUBROUTINE tea_leaf_cg_calc_w_kernel(x_min,             &
 
   pw = 0.0_8
 
-!$ACC DATA &
-!$ACC PRESENT(w, Kx, Ky, p, Di)
-
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT REDUCTION(+:pw)
+    !$omp target teams distribute parallel do simd collapse(2) reduction(+:pw)
     DO k=y_min,y_max
         DO j=x_min,x_max
             w(j, k) = Di(j,k)*p(j, k)                             &
@@ -160,9 +146,7 @@ SUBROUTINE tea_leaf_cg_calc_w_kernel(x_min,             &
             pw = pw + w(j, k)*p(j, k)
         ENDDO
     ENDDO
-!$ACC END KERNELS
-
-!$ACC END DATA
+    !$omp end target teams distribute parallel do simd
 
 END SUBROUTINE tea_leaf_cg_calc_w_kernel
 
@@ -188,12 +172,7 @@ SUBROUTINE tea_leaf_cg_calc_w_kernel_norxy(x_min,             &
     REAL(kind=8) :: pw
 
   pw = 0.0_8
-
-!$ACC DATA &
-!$ACC PRESENT(w, Kx, Ky, p, Di)
-
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT REDUCTION(+:pw)
+    !$omp target teams distribute parallel do simd collapse(2) reduction(+:pw)
     DO k=y_min,y_max
         DO j=x_min,x_max
             w(j, k) = Di(j,k)*p(j, k)                             &
@@ -202,9 +181,7 @@ SUBROUTINE tea_leaf_cg_calc_w_kernel_norxy(x_min,             &
             pw = pw + w(j, k)*p(j, k)
         ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
-
+    !$omp end target teams distribute parallel do simd
 END SUBROUTINE tea_leaf_cg_calc_w_kernel_norxy
 
 SUBROUTINE tea_leaf_cg_calc_ur_kernel(x_min,             &
@@ -244,20 +221,18 @@ SUBROUTINE tea_leaf_cg_calc_ur_kernel(x_min,             &
   rrn = 0.0_8
 
 
-!$ACC DATA &
-!$ACC PRESENT(u, r, Mi, w, z, Kx, Ky, p, Di, cp, bfp)
 
   IF (preconditioner_type .NE. TL_PREC_NONE) THEN
 
     IF (preconditioner_type .EQ. TL_PREC_JAC_DIAG) THEN
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+      !$omp target teams distribute parallel do simd collapse(2)
       DO k=y_min,y_max
         DO j=x_min,x_max
           u(j, k) =  u(j, k) + alpha   *p(j, k)
         ENDDO
       ENDDO
-!$ACC LOOP COLLAPSE(2) INDEPENDENT REDUCTION(+:rrn)
+      !$omp end target teams distribute parallel do simd
+      !$omp target teams distribute parallel do simd collapse(2) reduction(+:rrn)
       DO k=y_min,y_max
         DO j=x_min,x_max
           r(j, k) =  r(j, k) - alpha   *w(j, k)
@@ -265,56 +240,54 @@ SUBROUTINE tea_leaf_cg_calc_ur_kernel(x_min,             &
           rrn     = rrn      +  r(j, k)*z(j, k)
         ENDDO
       ENDDO
-!$ACC END KERNELS
+      !$omp end target teams distribute parallel do simd
 
     ELSE IF (preconditioner_type .EQ. TL_PREC_JAC_BLOCK) THEN
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+      !$omp target teams distribute parallel do simd collapse(2)
       DO k=y_min,y_max
         DO j=x_min,x_max
           u(j, k) = u(j, k) + alpha*p(j, k)
         ENDDO
       ENDDO
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+      !$omp end target teams distribute parallel do simd
+      !$omp target teams distribute parallel do simd collapse(2)
       DO k=y_min,y_max
         DO j=x_min,x_max
           r(j, k) = r(j, k) - alpha*w(j, k)
         ENDDO
       ENDDO
-!$ACC END KERNELS
+      !$omp end target teams distribute parallel do simd
 
       CALL tea_block_solve(x_min, x_max, y_min, y_max, halo_exchange_depth,             &
                              r, z, cp, bfp, Kx, Ky, Di, rx, ry)
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT REDUCTION(+:rrn)
+      !$omp target teams distribute parallel do simd collapse(2) reduction(+:rrn)
       DO k=y_min,y_max
         DO j=x_min,x_max
           rrn = rrn + r(j, k)*z(j, k)
         ENDDO
       ENDDO
-!$ACC END KERNELS
+      !$omp end target teams distribute parallel do simd
 
     ENDIF
   ELSE
-!$ACC KERNELS          
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
       DO j=x_min,x_max
         u(j, k) = u(j, k) + alpha*p(j, k)
       ENDDO
     ENDDO
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp end target teams distribute parallel do simd
+    !$omp target teams distribute parallel do simd collapse(2) reduction(+:rrn)
     DO k=y_min,y_max
       DO j=x_min,x_max
         r(j, k) = r(j, k) - alpha*w(j, k)
         rrn     = rrn + r(j, k)*r(j, k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
+    !$omp end target teams distribute parallel do simd
     
   ENDIF
 
-!$ACC END DATA
 
 END SUBROUTINE tea_leaf_cg_calc_ur_kernel
 
@@ -339,30 +312,24 @@ SUBROUTINE tea_leaf_cg_calc_p_kernel(x_min,             &
   INTEGER(KIND=4) :: j,k
   REAL(kind=8) :: beta
 
-!$ACC DATA &
-!$ACC PRESENT(z, r, p)
 
   IF (preconditioner_type .NE. TL_PREC_NONE .or. tl_ppcg_active) THEN
-!$ACC KERNELS          
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
         DO j=x_min,x_max
             p(j, k) = z(j, k) + beta*p(j, k)
         ENDDO
     ENDDO
-!$ACC END KERNELS    
+    !$omp end target teams distribute parallel do simd
   ELSE
-!$ACC KERNELS          
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+    !$omp target teams distribute parallel do simd collapse(2)
     DO k=y_min,y_max
         DO j=x_min,x_max
             p(j, k) = r(j, k) + beta*p(j, k)
         ENDDO
     ENDDO
-!$ACC END KERNELS    
+    !$omp end target teams distribute parallel do simd
   ENDIF
-
-!$ACC END DATA
 
 END SUBROUTINE tea_leaf_cg_calc_p_kernel
 

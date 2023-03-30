@@ -335,19 +335,14 @@ SUBROUTINE tea_pack_message_left(x_min,x_max,y_min,y_max,halo_exchange_depth,fie
 
   ! Pack
 
-!$ACC DATA &
-!$ACC PRESENT(left_snd_buffer, field)
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target teams distribute parallel do simd collapse(2)
   DO k=y_min-edge_minus,y_max+y_inc+edge_plus
     DO j=1,depth
       index=buffer_offset + j + (k + depth - 1)*depth
       left_snd_buffer(index)=field(x_min+x_inc-1+j,k)
     ENDDO
   ENDDO
-!$ACC END KERNELS
-!$ACC UPDATE HOST(left_snd_buffer)
-!$ACC END DATA
+!$omp target update from(left_snd_buffer)  
 
 END SUBROUTINE tea_pack_message_left
 
@@ -365,20 +360,14 @@ SUBROUTINE tea_unpack_message_left(x_min,x_max,y_min,y_max,halo_exchange_depth,f
   REAL(KIND=8) :: left_rcv_buffer(:)
 
   ! Unpack
-
-!$ACC DATA &
-!$ACC PRESENT (left_rcv_buffer, field)
-!$ACC UPDATE DEVICE (left_rcv_buffer)
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target update to(left_rcv_buffer)
+!$omp target teams distribute parallel do simd collapse(2)
   DO k=y_min-edge_minus,y_max+y_inc+edge_plus
     DO j=1,depth
       index= buffer_offset + j+(k+depth-1)*depth
       field(x_min-j,k)=left_rcv_buffer(index)
     ENDDO
   ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
 
 END SUBROUTINE tea_unpack_message_left
 
@@ -396,20 +385,14 @@ SUBROUTINE tea_pack_message_right(x_min,x_max,y_min,y_max,halo_exchange_depth,fi
   REAL(KIND=8) :: right_snd_buffer(:)
 
   ! Pack
-
-!$ACC DATA &
-!$ACC PRESENT(right_snd_buffer, field)
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target teams distribute parallel do simd collapse(2)
   DO k=y_min-edge_minus,y_max+y_inc+edge_plus
     DO j=1,depth
       index= buffer_offset + j+(k+depth-1)*depth
       right_snd_buffer(index)=field(x_max+1-j,k)
     ENDDO
   ENDDO
-!$ACC END KERNELS
-!$ACC UPDATE HOST(right_snd_buffer)
-!$ACC END DATA
+!$omp target update from(right_snd_buffer)
 
 END SUBROUTINE tea_pack_message_right
 
@@ -427,20 +410,14 @@ SUBROUTINE tea_unpack_message_right(x_min,x_max,y_min,y_max,halo_exchange_depth,
   REAL(KIND=8) :: right_rcv_buffer(:)
 
   ! Unpack
-  
-!$ACC DATA &
-!$ACC PRESENT (right_rcv_buffer, field)
-!$ACC UPDATE DEVICE (right_rcv_buffer)
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target update to(right_rcv_buffer)
+!$omp target teams distribute parallel do simd collapse(2)
   DO k=y_min-edge_minus,y_max+y_inc+edge_plus
     DO j=1,depth
       index= buffer_offset + j+(k+depth-1)*depth
       field(x_max+x_inc+j,k)=right_rcv_buffer(index)
     ENDDO
   ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
 
 END SUBROUTINE tea_unpack_message_right
 
@@ -458,20 +435,14 @@ SUBROUTINE tea_pack_message_top(x_min,x_max,y_min,y_max,halo_exchange_depth,fiel
   REAL(KIND=8) :: top_snd_buffer(:)
 
   ! Pack
-
-!$ACC DATA &
-!$ACC PRESENT(top_snd_buffer, field)
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target teams distribute parallel do simd collapse(2)
   DO k=1,depth
     DO j=x_min-edge_minus,x_max+x_inc+edge_plus
       index= buffer_offset + j + edge_minus + (k - 1)*(x_max + x_inc + (edge_plus+edge_minus))
       top_snd_buffer(index)=field(j,y_max+1-k)
     ENDDO
   ENDDO
-!$ACC END KERNELS
-!$ACC UPDATE HOST(top_snd_buffer)
-!$ACC END DATA
+!$omp target update from(top_snd_buffer)
 
 END SUBROUTINE tea_pack_message_top
 
@@ -489,20 +460,14 @@ SUBROUTINE tea_unpack_message_top(x_min,x_max,y_min,y_max,halo_exchange_depth,fi
   REAL(KIND=8) :: top_rcv_buffer(:)
 
   ! Unpack
-
-!$ACC DATA &
-!$ACC PRESENT (top_rcv_buffer, field)
-!$ACC UPDATE DEVICE (top_rcv_buffer)
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target update to(top_rcv_buffer)
+!$omp target teams distribute parallel do simd collapse(2)
   DO k=1,depth
     DO j=x_min-edge_minus,x_max+x_inc+edge_plus
       index= buffer_offset + j + edge_minus + (k - 1)*(x_max + x_inc + (edge_plus+edge_minus))
       field(j,y_max+y_inc+k)=top_rcv_buffer(index)
     ENDDO
   ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
 
 END SUBROUTINE tea_unpack_message_top
 
@@ -520,20 +485,14 @@ SUBROUTINE tea_pack_message_bottom(x_min,x_max,y_min,y_max,halo_exchange_depth,f
   REAL(KIND=8) :: bottom_snd_buffer(:)
 
   ! Pack
-
-!$ACC DATA &
-!$ACC PRESENT(bottom_snd_buffer, field)
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target teams distribute parallel do simd collapse(2)
   DO k=1,depth
     DO j=x_min-edge_minus,x_max+x_inc+edge_plus
       index= buffer_offset + j + edge_minus + (k - 1)*(x_max + x_inc + (edge_plus+edge_minus))
       bottom_snd_buffer(index)=field(j,y_min+y_inc-1+k)
     ENDDO
   ENDDO
-!$ACC END KERNELS
-!$ACC UPDATE HOST(bottom_snd_buffer)
-!$ACC END DATA
+!$omp target update from(bottom_snd_buffer)
 
 END SUBROUTINE tea_pack_message_bottom
 
@@ -551,20 +510,14 @@ SUBROUTINE tea_unpack_message_bottom(x_min,x_max,y_min,y_max,halo_exchange_depth
   REAL(KIND=8) :: bottom_rcv_buffer(:)
 
   ! Unpack
-
-!$ACC DATA &
-!$ACC PRESENT (bottom_rcv_buffer, field)
-!$ACC UPDATE DEVICE (bottom_rcv_buffer)
-!$ACC KERNELS
-!$ACC LOOP COLLAPSE(2) INDEPENDENT
+!$omp target update to(bottom_rcv_buffer)
+!$omp target teams distribute parallel do simd collapse(2)
   DO k=1,depth
     DO j=x_min-edge_minus,x_max+x_inc+edge_plus
       index= buffer_offset + j + edge_minus + (k - 1)*(x_max + x_inc + (edge_plus+edge_minus))
       field(j,y_min-k)=bottom_rcv_buffer(index)
     ENDDO
   ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
 
 END SUBROUTINE tea_unpack_message_bottom
 
