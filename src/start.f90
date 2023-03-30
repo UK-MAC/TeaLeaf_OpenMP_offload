@@ -97,7 +97,7 @@ SUBROUTINE start
   CALL tea_allocate_buffers()
 
 ! Allocate target data OMP
-!$omp target target data &
+!$omp target data &
     !$omp map(tofrom:chunk%tiles(1)%field%density)   &
     !$omp map(tofrom:chunk%tiles(1)%field%energy0)    &
     !$omp map(tofrom:chunk%tiles(1)%field%energy1)    &
@@ -169,7 +169,7 @@ SUBROUTINE start
 
   IF (visit_frequency.NE.0) CALL visit()
 
-!$omp END target target data
+!$omp END target data
 
   CALL tea_barrier()
 
