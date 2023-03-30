@@ -48,8 +48,9 @@ SUBROUTINE field_summary_kernel(x_min,x_max,y_min,y_max,halo_exchange_depth, &
   temp=0.0
   
   
-!$omp target teams distribute parallel do simd collapse(2) reduction(+ : vol,mass,ie,temp)
+  !$omp target teams distribute parallel do simd reduction(+:vol,mass,ie,temp)
   DO k=y_min,y_max
+    !$omp simd
     DO j=x_min,x_max
       cell_vol=volume(j,k)
       cell_mass=cell_vol*density(j,k)

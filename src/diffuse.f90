@@ -42,7 +42,7 @@ SUBROUTINE diffuse
   second_step=0.0 ! In order to prevent unused error
 
 ! Allocate target data OMP
-!$omp target data &
+    !$omp target data &
     !$omp map(to:chunk%tiles(1)%field%density)   &
     !$omp map(to:chunk%tiles(1)%field%energy0)    &
     !$omp map(to:chunk%tiles(1)%field%energy1)    &

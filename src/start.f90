@@ -96,6 +96,17 @@ SUBROUTINE start
 
   CALL tea_allocate_buffers()
 
+  CALL initialise_chunk()
+  
+  IF (parallel%boss)THEN
+    WRITE(g_out,*) 'Generating chunk '
+  ENDIF
+
+  grid%x_cells=mpi_dims(1)*chunk%tile_dims(1)*chunk%sub_tile_dims(1)
+  grid%y_cells=mpi_dims(2)*chunk%tile_dims(2)*chunk%sub_tile_dims(2)
+
+  CALL generate_chunk()
+
 ! Allocate target data OMP
 !$omp target data &
     !$omp map(tofrom:chunk%tiles(1)%field%density)   &
@@ -137,17 +148,6 @@ SUBROUTINE start
     !$omp map(tofrom:chunk%bottom_rcv_buffer)  &
     !$omp map(tofrom:chunk%top_snd_buffer)     &
     !$omp map(tofrom:chunk%top_rcv_buffer)
-
-  CALL initialise_chunk()
-  
-  IF (parallel%boss)THEN
-    WRITE(g_out,*) 'Generating chunk '
-  ENDIF
-  
-  grid%x_cells=mpi_dims(1)*chunk%tile_dims(1)*chunk%sub_tile_dims(1)
-  grid%y_cells=mpi_dims(2)*chunk%tile_dims(2)*chunk%sub_tile_dims(2)
-
-  CALL generate_chunk()
 
   ! Prime all halo target data for the first step
   fields=0
