@@ -4,4 +4,14 @@ This is an OpenMP offload port of Tealeaf reference for GPUs (tested on AMD and 
 
 ## Compling
 
+In most cases one needs to load the appropriate modules (including those for the accelerator in question) and then:
 
+```
+make clean; make COMPILER=CRAY
+```
+
+or,
+
+```
+make clean; make COMPILER=PGI
+```
