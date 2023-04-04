@@ -1,4 +1,4 @@
-# TeaLeaf OpenMP45
+# TeaLeaf OpenMP_offload
 
 This is an OpenMP offload port of Tealeaf reference for GPUs (tested on AMD and Nvidia)
 
