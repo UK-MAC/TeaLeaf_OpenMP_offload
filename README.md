@@ -1,12 +1,12 @@
 # TeaLeaf OpenMP_offload
 
-This is an OpenMP offload port of Tealeaf reference for GPUs (tested on AMD and Nvidia)
+This is an OpenMP offload port of Tealeaf reference for GPUs (tested on AMD and Nvidia).
 
 ## Compling
 
 In most cases one needs to load the appropriate modules (including those for the accelerator in question).
 
-Then for AMD/Nvidia GPUs (with the Cray compiler)
+Then for AMD/Nvidia GPUs (with the Cray compiler):
 
 ```
 make clean; make COMPILER=CRAY
