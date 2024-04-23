@@ -65,7 +65,7 @@ ifndef COMPILER
   MESSAGE=select a compiler to compile in OpenMP, e.g. make COMPILER=INTEL
 endif
 
-OOMP_INTEL     = -qopenmp -ip -g
+OOMP_INTEL     = -qopenmp
 OMP_SUN       = -xopenmp=parallel -vpara
 OMP_GNU       = -fopenmp
 OMP_CRAY      = -e Z
@@ -74,7 +74,7 @@ OMP_PATHSCALE = -mp
 OMP_XL        = -qsmp=omp -qthreaded
 OMP_ARM       = -fopenmp
 
-FLAGS_INTEL     = -O3 -no-prec-div -fpp -align array64byte
+FLAGS_INTEL     = -O3
 FLAGS_SUN       = -fast -xipo=2 -Xlistv4
 FLAGS_GNU       = -O3 -march=native -funroll-loops -cpp -ffree-line-length-none
 FLAGS_CRAY      = -em -ra -h ipa1 -homp
@@ -84,7 +84,7 @@ FLAGS_XL       = -O5 -qipa=partition=large -g -qfullpath -Q -qsigtrap -qextname=
 FLAGS_          = -O3
 FLAGS_ARM      = -cpp -O3 -ffp-contract=fast -march=native -mcpu=native
 
-CFLAGS_INTEL     = -O3 -no-prec-div -restrict -fno-alias
+CFLAGS_INTEL     = -O3
 CFLAGS_SUN       = -fast -xipo=2
 CFLAGS_GNU       = -O3 -march=native -funroll-loops
 CFLAGS_CRAY      = -em -h list=a
