@@ -84,7 +84,7 @@ FLAGS_XL       = -O5 -qipa=partition=large -g -qfullpath -Q -qsigtrap -qextname=
 FLAGS_          = -O3
 FLAGS_ARM      = -cpp -O3 -ffp-contract=fast -march=native -mcpu=native
 
-CFLAGS_INTEL     = -O3
+CFLAGS_INTEL     = -O3 -restrict -fno-alias
 CFLAGS_SUN       = -fast -xipo=2
 CFLAGS_GNU       = -O3 -march=native -funroll-loops
 CFLAGS_CRAY      = -em -h list=a
